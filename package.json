@@ -1,6 +1,6 @@
 {
-    "name": "wechatbot",
-    "version": "1.0.1",
+    "name": "werobo",
+    "version": "0.1.0",
     "description": "",
     "superagent": "index.js",
     "scripts": {
