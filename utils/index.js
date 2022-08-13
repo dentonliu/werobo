@@ -44,7 +44,14 @@ function formatDate(date) {
   return year + '-' + month + '-' + day + '日 ' + hour + ':' + min + ' ' + str;
 }
 
+function wait(seconds) {
+  return new Promise(function(resolve) {
+      setTimeout(resolve, seconds * 1000)
+  })
+}
+
 module.exports = {
   getDay,
-  formatDate
+  formatDate,
+  wait,
 };

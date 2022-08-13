@@ -4,9 +4,10 @@
  */
 const { WechatyBuilder } = require('wechaty');
 const schedule = require('./schedule/index');
-const config = require('./config/index');
+const config = require('./config/index.js');
 const untils = require('./utils/index');
 const superagent = require('./superagent/index');
+const startCoupon = require('./coupon')
 
 // 延时函数，防止检测出类似机器人行为操作
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -32,7 +33,8 @@ async function onLogin(user) {
   }
 
   // 登陆后创建定时任务
-  await initDay();
+  // await initDay();
+  startCoupon(bot)
 }
 
 // 登出
