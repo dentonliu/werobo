@@ -6,6 +6,14 @@ const { wait } = require('../utils')
 
 function Taobao(options) {
     this.options = options // 加载配置
+
+    this.init()
+}
+
+/**
+ * 初始化数据
+ */
+Taobao.prototype.init = function() {
     this.materials = new Map() // 初始化物料缓存
     this.materialPage = new Map() // 初始化物料id的分页数据
 }
@@ -22,11 +30,17 @@ Taobao.prototype.start = function(bot) {
 
     const groups = this.options.groups
     for (let group of groups) {
+        const mateiralIds = group.groupMaterialId.split(',')
+
         schedule.setSchedule(group.schedule, async () => {
-            const mateiralIds = group.groupMaterialId.split(',')
             this.sendMessage(bot, group.groupName, mateiralIds)
         })
     }
+
+    // 每天0点重置一下数据
+    schedule.setSchedule('0 0 0 */1 * *', async () => {
+        this.init()
+    })
 }
 
 /**
@@ -34,16 +48,16 @@ Taobao.prototype.start = function(bot) {
  * 
  * @param {WechatyInterface} bot 微信机器人对象
  * @param {String} groupName 群名
- * @param {Array} mateiralIds 物料id数组
+ * @param {Array} materialIds 物料id数组
  */
-Taobao.prototype.sendMessage = async function(bot, groupName, mateiralIds) {
+Taobao.prototype.sendMessage = async function(bot, groupName, materialIds) {
     // 从多个物料id中随机选取一个
-    const count = mateiralIds.length
-    const randomIndex = Math.floor(Math.random() * count)
+    const randomIndex = Math.floor(Math.random() * materialIds.length)
+    const materialId = materialIds[randomIndex]
 
     let res = null
     try {
-        res = await this.getMaterial(mateiralIds[randomIndex])
+        res = await this.getMaterial(materialId)
     } catch(e) {
         console.log(e)
         return
@@ -168,7 +182,8 @@ Taobao.prototype.request = function (apiname, params) {
     return new Promise(function(resolve, reject) {
         client.execute(apiname, params, function(error, response) {
             if (error) {
-                console.log(error)
+                console.log('请求接口：', apiname)
+                console.log('请求参数：', params)
                 reject(error)
             }
 
