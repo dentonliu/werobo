@@ -58,59 +58,59 @@ Taobao.prototype.sendMessage = async function(bot, groupName, materialIds) {
     let res = null
     try {
         res = await this.getMaterial(materialId)
+        
+        if (res == null) {
+            return
+        }
+
+        const room = await bot.Room.find({ topic: groupName })
+        if (!room) {
+            console.log(`没有找到微信群：${groupName}`)
+            return
+        }
+
+        let shareUrl = ''
+        let couponAmount = 0
+
+        if (res.coupon_share_url) {
+            shareUrl = "https:" + res.coupon_share_url
+            couponAmount = res.coupon_amount
+        } else {
+            shareUrl = "https:" + res.click_url
+        }
+
+        const pictUrl = "https:" + res.pict_url
+        const title = res.title
+        const zkFinalPrice = res.zk_final_price
+        const finalPrice = (parseFloat(zkFinalPrice) - parseFloat(couponAmount)).toFixed(2)
+
+        console.log(`分享商品：${title}`)
+
+        // 发送图片
+        const fb = FileBox.fromUrl(pictUrl)
+        await room.say(fb)
+        await wait(2)
+
+        // 发送商品名和优惠
+        let text = `${title}\n【在售价】¥${zkFinalPrice}\n【券后价】¥${finalPrice}`
+        await room.say(text)
+        await wait(Math.round(Math.random() * 3))
+
+        // 发送淘口令
+        text = await this.createTaobaoPwd(shareUrl)
+        if (text === null) {
+            return
+        }
+
+        const firstIndex = text.indexOf('￥')
+        const lastIndex = text.indexOf('￥', firstIndex + 1)
+        text = text.substring(firstIndex, lastIndex + 1)
+        await room.say(text)
+        await wait(2)
     } catch(e) {
         console.log(e)
         return
     }
-
-    if (res == null) {
-        return
-    }
-
-    const room = await bot.Room.find({ topic: groupName })
-    if (!room) {
-        console.log(`没有找到微信群：${groupName}`)
-        return
-    }
-
-    let shareUrl = ''
-    let couponAmount = 0
-
-    if (res.coupon_share_url) {
-        shareUrl = "https:" + res.coupon_share_url
-        couponAmount = res.coupon_amount
-    } else {
-        shareUrl = "https:" + res.click_url
-    }
-
-    const pictUrl = "https:" + res.pict_url
-    const title = res.title
-    const zkFinalPrice = res.zk_final_price
-    const finalPrice = (parseFloat(zkFinalPrice) - parseFloat(couponAmount)).toFixed(2)
-
-    console.log(`分享商品：${title}`)
-
-    // 发送图片
-    const fb = FileBox.fromUrl(pictUrl)
-    await room.say(fb)
-    await wait(2)
-
-    // 发送商品名和优惠
-    let text = `${title}\n【在售价】¥${zkFinalPrice}\n【券后价】¥${finalPrice}`
-    await room.say(text)
-    await wait(Math.round(Math.random() * 3))
-
-    // 发送淘口令
-    text = await this.createTaobaoPwd(shareUrl)
-    if (text === null) {
-        return
-    }
-
-    const firstIndex = text.indexOf('￥')
-    const lastIndex = text.indexOf('￥', firstIndex + 1)
-    text = text.substring(firstIndex, lastIndex + 1)
-    await room.say(text)
-    await wait(2)
 }
 
 /**
